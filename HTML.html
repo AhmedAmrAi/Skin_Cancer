@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Upload and Prediction</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 50px;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .upload-section {
+            margin-bottom: 20px;
+        }
+        .result-section {
+            margin-top: 20px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            background-color: #f9f9f9;
+        }
+        #uploadedImage {
+            max-width: 100%;
+            height: auto;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Upload Image for Prediction</h1>
+        <div class="upload-section">
+            <form id="uploadForm">
+                <input type="file" id="imageFile" name="file" accept="image/*" required>
+                <button type="submit">Upload and Predict</button>
+            </form>
+        </div>
+        <div class="result-section">
+            <h2>Prediction Result:</h2>
+            <p id="predictionResult">No prediction yet.</p>
+            <img id="uploadedImage" src="#" alt="Uploaded Image" style="display: none;">
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async function(event) {
+            event.preventDefault();
+            
+            const fileInput = document.getElementById('imageFile');
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+
+            // Display the uploaded image
+            const uploadedImage = document.getElementById('uploadedImage');
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                uploadedImage.src = e.target.result;
+                uploadedImage.style.display = 'block';
+            };
+            reader.readAsDataURL(fileInput.files[0]);
+
+            try {
+                const response = await fetch('http://127.0.0.1:8000/predictions', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+
+                const result = await response.json();
+                document.getElementById('predictionResult').textContent = result.prediction;
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('predictionResult').textContent = 'Error in prediction.';
+            }
+        });
+    </script>
+</body>
+</html>
